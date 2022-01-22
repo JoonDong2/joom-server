@@ -8,7 +8,7 @@ WORKDIR /app
 RUN npm i -g yarn
 RUN yarn
 
-EXPOSE 8000
+EXPOSE 3000
 
 USER node
 
