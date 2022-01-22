@@ -1,0 +1,46 @@
+#Logs
+./app/Logs
+./app/*.log
+./app/npm-deubg.log*
+./app/yarn-deubg.log*
+./app/yarn-error.log*
+
+# Runtime data
+./app/pids
+./app/*.pid
+./app/*.seed
+./app/*.pid.lock
+
+# Locks
+./app/package-lock.json
+./app/npm-shrinkwrap.json
+
+# Coverage directory used by tools like istanbul
+./app/coverage
+
+# nyc test coverage
+./app/.nyc_output
+
+# node-waf configuration
+./app/.lock-wscript
+
+# Dependency directories
+./app/node_modules/
+
+# Optional npm cache directory
+./app/.npm
+
+# Optional eslint cache
+./app/.eslintcache
+
+# Optional REPL history
+./app/.node_repl_history
+
+# Output of 'npm pack'
+./app/*.tgz
+
+# Yarn Integrity file
+./app/.yarn-integrity
+
+# dotenv environment variables file
+./app/.env

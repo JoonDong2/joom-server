@@ -1,0 +1,26 @@
+version: '3'
+services:
+    proxy:
+        restart: unless-stopped
+        image: staticfloat/nginx-certbot
+        ports:
+            - 80:80/tcp
+            - 443:443/tcp
+        environment:
+            CERTBOT_EMAIL: kwonjoondong@gmail.com
+            # variable names are space-separated
+            ENVSUBST_VARS: FQDN
+            FQDN: joom.joon-lab.com
+        volumes:
+          - ./conf.d:/etc/nginx/user.conf.d:ro
+          - letsencrypt:/etc/letsencrypt
+    app:
+        build:
+            context: ./
+            dockerfile: ./app/Dockerfile
+        environment:
+            NPM_CONFIG_LOGLEVEL: warn
+            PRISMA_SKIP_POSTINSTALL_GENERATE: "true"
+        restart: unless-stopped
+volumes:
+    letsencrypt:
