@@ -10,12 +10,11 @@ import {Socket, Server} from 'socket.io';
 import {Logger} from '@nestjs/common';
 
 @WebSocketGateway({
-    namespace: 'webrtc'
+    namespace: 'webrtc/socket'
 })
 export class WebrtcMediatorGateway implements OnGatewayInit,
 OnGatewayConnection,
 OnGatewayDisconnect {
-    aa = 123;
     private logger : Logger = new Logger('WebrtcMediatorGateway');
     @WebSocketServer()
     server : Server;
