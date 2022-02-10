@@ -15,10 +15,11 @@ import {Logger} from '@nestjs/common';
 export class WebrtcMediatorGateway implements OnGatewayInit,
 OnGatewayConnection,
 OnGatewayDisconnect {
+    aa = 123;
     private logger : Logger = new Logger('WebrtcMediatorGateway');
     @WebSocketServer()
     server : Server;
-// 게이트웨이가 초기화되고 나서 실행
+    // 게이트웨이가 초기화되고 나서 실행
     afterInit(server : any) {
         this
             .logger
