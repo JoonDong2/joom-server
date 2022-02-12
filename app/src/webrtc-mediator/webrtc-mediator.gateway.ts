@@ -9,16 +9,17 @@ import {
 import {Socket as OriginSocket, Server} from 'socket.io';
 import {Logger} from '@nestjs/common';
 
-interface Socket extends OriginSocket {
-    nickname : string;
+export interface Socket extends OriginSocket {
+    type: 'owner' | 'visitor'; 
+    nickname: string;
+    roomName: string;
+    password?: string;
 }
 
 @WebSocketGateway({namespace: 'webrtc/socket'})
 export class WebrtcMediatorGateway implements OnGatewayInit,
 OnGatewayConnection,
 OnGatewayDisconnect {
-    sockets : Socket[];
-
     private logger : Logger = new Logger('WebrtcMediatorGateway');
     @WebSocketServer()
     server : Server;
@@ -29,10 +30,23 @@ OnGatewayDisconnect {
     }
 
     handleConnection(client : Socket, ...args : any[]) {
-
+        const type = client.handshake.query.type as 'owner' | 'visitor';
+        const roomName = client.handshake.query.roomName as string;
+        const password = client.handshake.query.password as string | undefined;
+        client.type = type;
         client.nickname = client.handshake.query.nickname as string;
+        client.password = type === 'owner' ? password : undefined;
+
+        if (type === 'owner') { 
+            // TODO: roomName 방 생성
+        } else if (type === 'visitor') {
+            // TODO: roomName owner 정보 가져오기
+            // TODO: 전송된 password와 owner의 password 비교
+            // TODO: roomName 방 입장
+        } else {
+            client.disconnect();
+        }
         this.logger.log(`Client connected: ${client.handshake.query.nickname}`);
-        return 'hello';
     }
 
     handleDisconnect(client : Socket) {
