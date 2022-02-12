@@ -8,6 +8,7 @@ import {
 } from '@nestjs/websockets';
 import {Socket as OriginSocket, Server} from 'socket.io';
 import {Logger} from '@nestjs/common';
+import { WebrtcMediatorService } from './webrtc-mediator.service';
 
 export interface Socket extends OriginSocket {
     type: 'owner' | 'visitor'; 
@@ -21,8 +22,11 @@ export class WebrtcMediatorGateway implements OnGatewayInit,
 OnGatewayConnection,
 OnGatewayDisconnect {
     private logger : Logger = new Logger('WebrtcMediatorGateway');
+
     @WebSocketServer()
     server : Server;
+
+    constructor(private readonly webrtcMediatorService: WebrtcMediatorService) {}
 
     // 게이트웨이가 초기화되고 나서 실행
     afterInit(server : any) {
@@ -30,23 +34,44 @@ OnGatewayDisconnect {
     }
 
     handleConnection(client : Socket, ...args : any[]) {
-        const type = client.handshake.query.type as 'owner' | 'visitor';
-        const roomName = client.handshake.query.roomName as string;
-        const password = client.handshake.query.password as string | undefined;
-        client.type = type;
-        client.nickname = client.handshake.query.nickname as string;
-        client.password = type === 'owner' ? password : undefined;
-
-        if (type === 'owner') { 
-            // TODO: roomName 방 생성
-        } else if (type === 'visitor') {
-            // TODO: roomName owner 정보 가져오기
-            // TODO: 전송된 password와 owner의 password 비교
-            // TODO: roomName 방 입장
-        } else {
+        try {
+            const type = client.handshake.query.type as 'owner' | 'visitor';
+            const roomName = client.handshake.query.roomName as string;
+            const password = client.handshake.query.password as string | undefined;
+    
+            this.logger.log(`Client connected: ${type} ${roomName} ${password}`);
+    
+            if (!type || !roomName) throw new Error('잘못된 접근입니다.');
+    
+            client.type = type;
+            client.nickname = client.handshake.query.nickname as string;
+            client.password = type === 'owner' ? password : undefined;
+    
+            if (type === 'owner') { 
+                // roomName 중복 검사
+                const rooms: Map<string, Set<string>> = this.server.adapter['rooms'];
+                if (rooms.get(roomName)) throw new Error('동일한 이름의 방이 존재합니다.');
+    
+                // roomName 방 생성
+                client.join(roomName);
+            } else if (type === 'visitor') {
+                // roomName owner 정보 가져오기
+                const owner = this.webrtcMediatorService.getRoomOwner(roomName);
+    
+                // 전송된 password와 owner의 password 비교
+                if (!owner) throw new Error('존재하지 않는 방입니다.');
+                if (owner.password && owner.password !== password) {
+                    throw new Error('비밀번호가 다릅니다.');
+                }
+    
+                client.join(roomName);
+            } else {
+                throw new Error('잘못된 접근입니다.');
+            }
+        } catch (e) {
+            client.emit('disconnect_message', e.message);
             client.disconnect();
         }
-        this.logger.log(`Client connected: ${client.handshake.query.nickname}`);
     }
 
     handleDisconnect(client : Socket) {
