@@ -7,7 +7,7 @@ export class RoomsDto {
     readonly roomName: string;
 
     @IsString()
-    readonly peerName: string;
+    readonly peerNickname: string;
 
     @IsOptional()
     @IsString()

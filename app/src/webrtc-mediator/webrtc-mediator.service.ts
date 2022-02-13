@@ -4,7 +4,7 @@ import {  Socket, WebrtcMediatorGateway } from './webrtc-mediator.gateway';
 
 @Injectable()
 export class WebrtcMediatorService {
-    constructor(private readonly webrtcMediatorGateway: WebrtcMediatorGateway ) {}
+    constructor(private readonly webrtcMediatorGateway: WebrtcMediatorGateway) {}
 
     getRooms(): RoomsDto[] {
         const sids: Map<string, Set<string>> = this.webrtcMediatorGateway.server.adapter['sids'];
@@ -20,24 +20,10 @@ export class WebrtcMediatorService {
             pureRooms.push({
                 roomName,
                 peerId: !password ? connectedId : undefined,
-                peerName: nickname,
+                peerNickname: nickname,
             });
         })
 
         return pureRooms;
-    }
-
-    getRoomOwner(roomName: string): Socket | undefined {
-        const rooms: Map<string, Set<string>> = this.webrtcMediatorGateway.server.adapter['rooms'];
-        const sockets = this.webrtcMediatorGateway.server.sockets as unknown as Map<string, Socket>;
-        const connectedIdSet = rooms.get(roomName);
-
-        if (!connectedIdSet || connectedIdSet.size !== 1) return;
-        
-        const connectedId = [...connectedIdSet][0];
-        const ownerSocket = sockets.get(connectedId);
-
-        if (!ownerSocket || ownerSocket.type !== 'owner') return;
-        return ownerSocket;
     }
 }
