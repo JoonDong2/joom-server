@@ -4,7 +4,8 @@ import {
     WebSocketServer,
     OnGatewayInit,
     OnGatewayConnection,
-    OnGatewayDisconnect
+    OnGatewayDisconnect,
+    MessageBody
 } from '@nestjs/websockets';
 import {Socket as OriginSocket, Server} from 'socket.io';
 import {Logger} from '@nestjs/common';
@@ -40,7 +41,7 @@ OnGatewayDisconnect {
             const password = client.handshake.query.password as string | undefined;
             const nickname = client.handshake.query.nickname as string;
     
-            this.logger.log(`Client connected: ${type} ${roomName} ${password}`);
+            this.logger.log(`Client connected: ${type} ${nickname} ${roomName} ${password}`);
     
             if (!type || !roomName) throw new Error('잘못된 접근입니다.');
     
@@ -55,6 +56,7 @@ OnGatewayDisconnect {
                 if (rooms.get(roomName)) throw new Error('동일한 이름의 방이 존재합니다.');
     
                 // roomName 방 생성
+                client.emit('connect_successful');
                 client.join(roomName);
             } else if (type === 'visitor') {
                 // roomName owner 정보 가져오기
@@ -77,6 +79,7 @@ OnGatewayDisconnect {
                     throw new Error('비밀번호가 다릅니다.');
                 }
     
+                client.emit('connect_successful');
                 client.join(roomName);
             } else {
                 throw new Error('잘못된 접근입니다.');
@@ -89,6 +92,24 @@ OnGatewayDisconnect {
 
     handleDisconnect(client : Socket) {
         this.logger .log(`Client disconnected: ${client.id}`);
+    }
+
+    @SubscribeMessage('exit_visitor')
+    handleExitVisitor(client : Socket, payload: {
+        roomName: string;
+    }) {
+        if(client.type !== 'visitor' || !payload?.roomName) return;
+        this.logger.log("exit", client.nickname, payload);
+        client.to(payload.roomName).emit('exit_visitor', { nickname: client.nickname });
+    }
+
+    @SubscribeMessage('exit_owner')
+    handleExitOwner(client : Socket, payload: {
+        roomName: string;
+    }) {
+        if(client.type !== 'owner' || !payload?.roomName) return;
+        this.logger.log("exit", client.nickname, payload);
+        client.to(payload.roomName).emit('exit_owner', { nickname: client.nickname });
     }
 
     @SubscribeMessage('message')

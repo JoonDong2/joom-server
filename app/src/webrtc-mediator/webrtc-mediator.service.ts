@@ -22,7 +22,7 @@ export class WebrtcMediatorService {
                 peerId: !password ? connectedId : undefined,
                 peerNickname: nickname,
             });
-        })
+        });
 
         return pureRooms;
     }
