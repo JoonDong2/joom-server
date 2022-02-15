@@ -112,9 +112,30 @@ OnGatewayDisconnect {
         client.to(payload.roomName).emit('exit_owner', { nickname: client.nickname });
     }
 
-    @SubscribeMessage('message')
-    handleMessage(client : any, payload : any) {
-        this.logger.log("message", client.nickname, payload);
-        client.emit('welcome', {message: 'welcome'});
+    @SubscribeMessage('offer')
+    handleOffer(client : any, payload: {
+        roomName: string;
+        offer: any;
+    }) {
+        this.logger.log("offer", payload);
+        client.to(payload.roomName).emit('offer', payload.offer);
+    }
+
+    @SubscribeMessage('answer')
+    handleAnswer(client : any, payload: {
+        roomName: string;
+        answer: any;
+    }) {
+        this.logger.log("answer", client.nickname, payload.roomName);
+        client.to(payload.roomName).emit('answer', payload.answer);
+    }
+
+    @SubscribeMessage('icecandidate')
+    handleIce(client : any, payload: {
+        roomName: string;
+        icecandidate: any;
+    }) {
+        this.logger.log("icecandidate", payload);
+        client.to(payload.roomName).emit('icecandidate', payload.icecandidate);
     }
 }
