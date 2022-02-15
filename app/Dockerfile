@@ -7,6 +7,7 @@ WORKDIR /app
 # Install app dependencies
 RUN npm i -g yarn
 RUN yarn
+RUN yarn build
 
 EXPOSE 3000
 
