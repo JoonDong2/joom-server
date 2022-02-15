@@ -5,7 +5,7 @@ COPY app /app
 WORKDIR /app
 
 # Install app dependencies
-RUN npm i -g yarn
+RUN npm i yarn
 RUN yarn
 RUN yarn build
 
